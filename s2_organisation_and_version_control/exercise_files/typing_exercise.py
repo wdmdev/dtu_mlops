@@ -1,5 +1,6 @@
 import torch
 from torch import nn
+from typing import Callable, Optional, Tuple, Union, List, Any
 
 
 class Network(nn.Module):
@@ -12,7 +13,7 @@ class Network(nn.Module):
 
     """
 
-    def __init__(self, input_size, output_size, hidden_layers, drop_p=0.5):
+    def __init__(self, input_size: int, output_size: int, hidden_layers: List[Any], drop_p: Union[int, float] = 0.5):
         super().__init__()
         # Input to a hidden layer
         self.hidden_layers = nn.ModuleList([nn.Linear(input_size, hidden_layers[0])])
@@ -25,7 +26,7 @@ class Network(nn.Module):
 
         self.dropout = nn.Dropout(p=drop_p)
 
-    def forward(self, x):
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
         """Forward pass through the network, returns the output logits."""
         for each in self.hidden_layers:
             x = nn.functional.relu(each(x))
@@ -35,10 +36,14 @@ class Network(nn.Module):
         return nn.functional.log_softmax(x, dim=1)
 
 
-def validation(model, testloader, criterion):
+def validation(
+    model: Network,
+    testloader: List[Tuple[torch.Tensor, torch.Tensor]],
+    criterion: Callable[[torch.Tensor, torch.Tensor], torch.Tensor],
+):
     """Validation pass through the dataset."""
-    accuracy = 0
-    test_loss = 0
+    accuracy: float = 0
+    test_loss: float = 0
     for images, labels in testloader:
         images = images.resize_(images.size()[0], 784)
 
@@ -51,17 +56,25 @@ def validation(model, testloader, criterion):
         # Class with highest probability is our predicted class, compare with true label
         equality = labels.data == ps.max(1)[1]
         # Accuracy is number of correct predictions divided by all predictions, just take the mean
-        accuracy += equality.type_as(torch.FloatTensor()).mean()
+        accuracy += equality.type_as(torch.FloatTensor()).mean().item()
 
     return test_loss, accuracy
 
 
-def train(model, trainloader, testloader, criterion, optimizer=None, epochs=5, print_every=40):
+def train(
+    model: Network,
+    trainloader: List[Tuple[torch.Tensor, torch.Tensor]],
+    testloader: List[Tuple[torch.Tensor, torch.Tensor]],
+    criterion: Callable[[torch.Tensor, torch.Tensor], torch.Tensor],
+    optimizer: Optional[Any] = None,
+    epochs: int = 5,
+    print_every: int = 40,
+):
     """Train a PyTorch Model."""
     if optimizer is None:
         optimizer = torch.optim.Adam(model.parameters(), lr=1e-2)
-    steps = 0
-    running_loss = 0
+    steps: int = 0
+    running_loss: float = 0
     for e in range(epochs):
         # Model in training mode, dropout is on
         model.train()

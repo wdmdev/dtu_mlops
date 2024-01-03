@@ -5,7 +5,7 @@
 #################################################################################
 
 PROJECT_NAME = mlops_classifier
-PYTHON_VERSION = 3.10.9
+PYTHON_VERSION = 3.10.13
 PYTHON_INTERPRETER = python
 
 #################################################################################
@@ -39,6 +39,10 @@ clean:
 ## Process raw data into processed data
 data: requirements
 	$(PYTHON_INTERPRETER) $(PROJECT_NAME)/data/make_dataset.py
+
+## Train model
+train: requirements
+	$(PYTHON_INTERPRETER) $(PROJECT_NAME)/train_model.py train --lr 1e-3
 
 #################################################################################
 # Documentation RULES                                                           #
