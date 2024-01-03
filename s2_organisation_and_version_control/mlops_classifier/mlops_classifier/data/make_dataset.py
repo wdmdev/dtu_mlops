@@ -18,12 +18,12 @@ class CustomDataset(Dataset):
         return x, y
 
 
-def create_dataset(image_files, target_files, data_path):
+def create_dataset(image_files, target_files):
     """
     Function to create a dataset from the given list of file names
     """
-    image_tensors = [torch.load(os.path.join(data_path, file_name)) for file_name in image_files]
-    target_tensors = [torch.load(os.path.join(data_path, file_name)) for file_name in target_files]
+    image_tensors = [torch.load(file_name) for file_name in image_files]
+    target_tensors = [torch.load(file_name) for file_name in target_files]
     dataset = CustomDataset(torch.cat(image_tensors, dim=0), torch.cat(target_tensors, dim=0))
     return dataset
 
@@ -31,16 +31,22 @@ def create_dataset(image_files, target_files, data_path):
 def mnist():
     """Return train and test dataloaders for MNIST."""
     data_path = os.path.join(os.path.dirname(__file__), "..", "..", "..", "..", "data", "corruptmnist")
+    data_path_v2 = os.path.join(os.path.dirname(__file__), "..", "..", "..", "..", "data", "corruptmnist_v2")
 
     # Create file name lists
-    train_image_files = [f"train_images_{i}.pt" for i in range(6)]
-    train_target_files = [f"train_target_{i}.pt" for i in range(6)]
-    test_image_files = ["test_images.pt"]
-    test_target_files = ["test_target.pt"]
+    train_image_files = [os.path.join(data_path, f"train_images_{i}.pt") for i in range(6)]
+    train_target_files = [os.path.join(data_path, f"train_target_{i}.pt") for i in range(6)]
+    train_image_files_v2 = [os.path.join(data_path_v2, f"train_images_{i}.pt") for i in range(6,10)]
+    train_image_files.extend(train_image_files_v2)
+    train_target_files_v2 = [os.path.join(data_path_v2, f"train_target_{i}.pt") for i in range(6,10)]
+    train_target_files.extend(train_target_files_v2)
+
+    test_image_files = [os.path.join(data_path, "test_images.pt")]
+    test_target_files = [os.path.join(data_path, "test_target.pt")]
 
     # Create datasets
-    train_dataset = create_dataset(train_image_files, train_target_files, data_path)
-    test_dataset = create_dataset(test_image_files, test_target_files, data_path)
+    train_dataset = create_dataset(train_image_files, train_target_files)
+    test_dataset = create_dataset(test_image_files, test_target_files)
 
     # Create dataloaders
     train_loader = DataLoader(train_dataset, batch_size=64, shuffle=True)
